@@ -1,0 +1,62 @@
+//Author: Shelby Straight, Paesani Lab
+//Date Last Modified: 8, Sep, 2014
+
+Program usage: "Numerov-analysis" is an executable file which fits a QM
+wavefunction to an arbitrary potential, given a mass. From this wave-
+function, the Energies associated with vibrational transitions can be
+computed.
+
+Program parameters are as follows:
+
+ ./Numerov-Analysis num_energy_levels system_mass x_min x_max < potential_input.dat
+
+num_energy_levels: integer number; the number of energy levels (including the grounds state)
+	for which QM wavefunctions will be computed.
+
+system_mass: the reduced mass of the system in question in Atomic Unites
+	for OH, this value is 1728.1
+	for OD, this value is 3261
+
+x_min: the lower bound of the spline (the first data point in an increasing
+	domain to which the spline will be fit).
+
+x_max: the upper bound of the spline (the last data point in an increasing
+        domain to which the spline will be fit).
+ 
+	x_min and x_max are necessary because the spline function is a good
+	approximation of the arbitrary potential *within the bounds of the
+	specified data range* but is not a good approximation for the value
+	of the arbitrary potential outside of this domain.
+		i.e., splining is good for interpolation, but not for
+			extrapolation
+
+< potential_input.dat: a file which, in two columns (the first column being
+	x-values and the second being y-values) specifies the arbitrary 
+	potential to which a wavefunction will be fit
+
+PROGRAM OUTPUT:
+
+Wavefunctions for particular E-levels are output to unique files designated
+	by the system mass. 
+
+	ex: E_level0_m1728.1 (file containing wavefunction for the groundstate
+		of an OH oscillator in an arbitrary potential. Cols 1:2 
+		define the wavefunction, cols 1:3 define the probability
+		distribution function-eg, psi^2).
+
+	ex: E_level1_m1728.1 (file containing wavefunction for the first
+		excited state).
+
+While Wavefunctions are being written to their respective files, the Energy
+	Eigenvalues (in atomic units and in kcal/mol) are sent to STDERR
+	(which by default is the terminal screen unless a redirect is
+	imposed)
+
+------------------------------IMPORTANT NOTE-----------------------------------
+
+For some calculations, the step size utilized in the main routine of the program
+(the variable "s" in "main.cpp", which is converted into "reduced_s" in the 
+same program) may be too large to accurately compute a wavefunction for a 
+given potential. In these situations, it may be wise to change the step size
+and experiment to see what size of s will give a converged solution.
+
