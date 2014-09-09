@@ -8,6 +8,8 @@
 #include "spline.h"
 #include <cstring>
 
+//Computes the next value in the wavefunction using the current value [psi(x)]
+//and the previous valu [psi(x-s)]
 long double compute_next_psi(long double current_psi, long double prev_psi, long double current_G, long double prev_G, long double next_G, long double s){
 
 	long double next_psi= 2.0*current_psi - prev_psi;
@@ -19,6 +21,8 @@ long double compute_next_psi(long double current_psi, long double prev_psi, long
 
 }
 
+//computes the next G-value (for further reference and an overview of the
+//Numerov algorithm, see Levine, Quatum Chemistry, 6th ed)
 long double compute_reduced_G(long double x_reduced, long double red_E_guess, int pot_choice, spline func, long double A_param, long double B_param){
 
 	if (pot_choice==3){
@@ -52,6 +56,7 @@ long double compute_G(long double x, long double E_guess, int pot_choice, spline
 
 }
 
+//holdover for non-splined analytical potentials
 long double find_custom_classical_lower(long double E_guess, spline func, long double step_size, long double lower_bound, long double upper_bound){
 
 	long double y_at_x=0.0;
@@ -67,6 +72,7 @@ long double find_custom_classical_lower(long double E_guess, spline func, long d
 	return starting_x;
 }
 
+//holdover for non-splined analytical potentials
 long double find_custom_classical_upper(long double E_guess, spline func, long double step_size, long double lower_bound, long double upper_bound){
 
 	long double y_at_x=0.0;
@@ -82,6 +88,7 @@ long double find_custom_classical_upper(long double E_guess, spline func, long d
 
 }
 
+//holdover for non-splined analytical potentials
 long double find_classical_limit(long double E_guess, int pot_choice){
 
 	if (pot_choice==1) return (std::sqrt(2*E_guess));
@@ -114,8 +121,11 @@ int main(int argc, char * argv[]){
 	std::stringstream sis(argv[4]);	
 	sis>>x_max;
 
+	//END OF INPUT HANDLING
+
 	spline custom_function;
 
+	//"spline" the function from STDIN
 	if (potential_choice==3) custom_function.initialize(std::cin);
 
 	long double hbar=1.0;
@@ -128,6 +138,8 @@ int main(int argc, char * argv[]){
 
 	s=0.0001;
 
+	//Bring the "spline" to zero, sets the addition_adjustment parameter
+	//within the spline object
 	custom_function.adjust_zero(s, x_min, x_max);
 
 	long double psi_length;
@@ -151,6 +163,7 @@ int main(int argc, char * argv[]){
 
 	std::ofstream output_stream;
 
+	//main body loop-compute x energy eigenfunctions
 	while (energy_level_being_computed<num_energy_levels){
 
 		bool wavefunction_found=false;
@@ -160,6 +173,8 @@ int main(int argc, char * argv[]){
 
 		red_E_guess+=increment;
 
+		//for the given wavefunction in question, repeat the following
+		//loop until a satisfactory solution is found
 		while (wavefunction_found == false){
 			int node_counter=0;
 
@@ -174,6 +189,8 @@ int main(int argc, char * argv[]){
 			reduced_wavefunction[0]=0;
 			reduced_wavefunction[1]=0.00001;
 
+			//fill the rest of the wavefunction values in according to the
+			//"intelligent" guess for the reduced energy
 			for (int i=0; i<num_intervals; ++i){
 
 				reduced_domain[i]=red_x_min + (i*reduced_s);
@@ -191,29 +208,45 @@ int main(int argc, char * argv[]){
 			}
 
 			//wavefunction must be normalized before boundary conditions are checked
-
+			//first, compute the normalization constant
 			long double reduced_total_sum=0.0;
 	  		for (int i=0; i<num_intervals; ++i){
         	       		reduced_total_sum+=(reduced_wavefunction[i]*reduced_wavefunction[i]*reduced_s);
 	        	}
-
+			//now divide the wavefunction by the sqrt(normalization_constant)
         		long double reduced_normalization_factor=1.0/std::sqrt(reduced_total_sum);
 		        for (int i=0; i<num_intervals; ++i){
         	        	reduced_wavefunction[i]*=reduced_normalization_factor;
         		}
 
-
+			//check to see that there are the correct number of nodes in the function
+			//...but ignore the values at the very end, as these tend to be less 
+			//numerically stable
 			for (int i=0; i<(num_intervals-100); ++i){
 				if (reduced_wavefunction[i]*reduced_wavefunction[i+1]<0) ++node_counter;
 			}
 
+			//if the function is normalized, ends at a value ~0, and there are 
+			//the correct number of nodes, then the work for this wavefunction 
+			//is done
 			if ((reduced_wavefunction[num_intervals-1]*reduced_wavefunction[num_intervals-1]) < (0.005) && node_counter==energy_level_being_computed){
-
         	                wavefunction_found=true;
                 	        wave_energy=red_E_guess;
-
 	                }
 
+			//If we guessed to high (which can only happen after a previous guess was too
+			//low), then reduce the energy guess to what it was previously and divide the
+			//increment by 10. This "intelligently" narrows down to a more correct energy
+			//guess. For example, if the eigenvalue is 0.315, then the sequence of guesses
+			//proceeds as following:
+			//	0.1 (too low, guess=  guess + increment)
+			//	0.2 (too low, guess=  guess + increment)
+			//	0.3 (too low, guess=  guess + increment)
+			//	0.4 (too hi, guess=  guess + increment, increment/=10)
+			//	0.3 (too low, guess=  guess + increment)	 
+			//	0.31 (too low, guess= guess+increment)
+			//	0.32, increment /=10,
+			//	...0.31, 0.311, 0.312, 0.313, 0.314, 0.315
 			if (node_counter>energy_level_being_computed){
 			
 				red_E_guess-=increment;
@@ -236,6 +269,9 @@ int main(int argc, char * argv[]){
 			}
 
 		}
+
+		//Print Energy levels and eigenvalues to the screen
+
 		std::cerr<<"Energy Level: "<<energy_level_being_computed<<'\n';
 
 		std::cerr<<"Reduced-Energy eigenvalue (in a.u.): "<<std::setprecision(10)<<(wave_energy-custom_function.addition_adjustment)*A_param<<'\n';
@@ -261,6 +297,10 @@ int main(int argc, char * argv[]){
 
                 output_stream.open(str);
 
+		//print to the output stream (a filename custom-made to fit the
+		//parameters of the wavefunction specified in the command line)
+		//the domain of the wavefunction, the wavefunction (col 2), and
+		//the probability distribution function (col 3, aka psi-squared)
 		for (int i=0; i<num_intervals; ++i){
 
 			output_stream
