@@ -11,25 +11,29 @@
 class spline{
 
 public:
+	spline(const long double *x_values, const long double *y_values, int num_vals);
+	long double splint(long double x);
+//	void initialize(long double *x_values, long double *y_values, int num_vals); 
+	long double addition_adjustment = 0.0;
+	void adjust_zero(long double x_step, long double lower_bound, long double upper_bound);
+	void print_spline(long double x_step, long double lower_bound, long double upper_bound);
+/*
+	~spline(){
+		delete[] x_array;
+		delete[] y_array;
+		delete[] y2_array;
+	}
 
-	void initial_spline(float x[], float y[], int n, float yp1, float ypn, float y2[]);
-	float splint(float x);
-	void initialize(std::istream& ifs);
+*/
+private:
+	void initial_spline(int n, long double yp1, long double ypn);
 
-	void print_spline(float x_step, float lower_bound, float upper_bound);
-
-	void adjust_zero(float x_step, float lower_bound, float upper_bound);
-
-	float *x_array;
-	float *y_array;
+	long double x_array[14];
+	long double y_array[14];
 
 	int num_data;
 
-	float yp1, ypn;
-
-	float addition_adjustment;
-
-	float *y2_array;
+	long double y2_array[14];
 };
 
 #endif
