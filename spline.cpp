@@ -10,30 +10,32 @@
 //constructor
 spline::spline(const long double *x_values, const long double *y_values, int num_vals){
 
-	long double yp1=5.0e30;
-        long double ypn=yp1;
-
         num_data=num_vals;
 
   //      x_array= new long double[num_data];
 //        y_array= new long double[num_data];
 
-        for (int i=0; i<num_data; ++i){
-            y_array[i] = y_values[i];
-            x_array[i] = x_values[i];
+        for (int i=1; i<=num_data; ++i){
+            y_array[i] = y_values[i - 1];
+            x_array[i] = x_values[i - 1];
         }
 
-   //     y2_array=new long double[num_data];
-        std::fill(y2_array, y2_array+num_data, 0.0);
+	long double yp1 = (y_array[1] - y_array[2]) / (x_array[1] - x_array[2]);
+	
+	long double ypn = (y_array[num_data - 1] - y_array[num_data - 0]) / (x_array[num_data - 1] - x_array[num_data - 0]);
 
-//	std::cout<<y2_array[7]<<std::endl;
+   //     y2_array=new long double[num_data];
+        std::fill(y2_array, y2_array+(1+num_data), 0.0);
+
+//	std::cout<<y_array[7]<<std::endl;
+//	std::cout<<y_array[7]<<std::endl;
         //arrays of doubles are now filled with relevant (and arbitrary)
         //y and x values
 
-        initial_spline((num_data-1), yp1, ypn);
+        initial_spline((num_data-0), yp1, ypn);
 
 //	std::cout<<y2_array[7]<<std::endl;
-
+//
 //	std::cout<<splint(1.0)<<std::endl;
 
         //spline is initialized with the x and y data read in and interpolated
@@ -49,7 +51,7 @@ void spline::print_spline(long double x_step, long double lower_bound, long doub
 
 	while (x_pos<=upper_bound){
 
-		std::cout
+		std::cerr
 			<<std::setw(18)<<x_pos
 			<<std::setw(18)<<splint(x_pos)
 			<<'\n';
@@ -106,7 +108,7 @@ void spline::initial_spline(int n, long double yp1, long double ypn){
 //	std::cout<<x_array[n]<<'\t'<<y_array[n]<<std::endl;
 //	std::cout<<x_array[n+1]<<'\t'<<y_array[n+1]<<std::endl;	
 
-	for (i=2; i<=n-1; ++i){
+	for (i = 2; i <= n-1; ++i){
 
 		sig=(x_array[i]-x_array[i-1])/(x_array[i+1]-x_array[i-1]);
 		p=sig*y2_array[i-1]+2.0;

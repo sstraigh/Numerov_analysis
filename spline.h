@@ -28,12 +28,12 @@ public:
 private:
 	void initial_spline(int n, long double yp1, long double ypn);
 
-	long double x_array[14];
-	long double y_array[14];
+	long double x_array[32];
+	long double y_array[32];
 
 	int num_data;
 
-	long double y2_array[14];
+	long double y2_array[32];
 };
 
 #endif

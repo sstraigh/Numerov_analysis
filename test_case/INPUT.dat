@@ -1,0 +1,5 @@
+num_levels = 3
+mass       = 1.78882340923978815770
+min_x      = 0.6 
+max_x      = 1.5 
+total_time = 27.0

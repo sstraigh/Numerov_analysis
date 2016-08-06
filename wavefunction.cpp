@@ -34,7 +34,7 @@ void wavefunction::initialize_wavefunction(const long double x_start, const long
 }
 void wavefunction::set_energy(long double red_E_guess, long double add_adjustment){
 
-	energy = red_E_guess - add_adjustment;
+	energy = red_E_guess;// + add_adjustment;
 	energy *= A_param;
 
 }
